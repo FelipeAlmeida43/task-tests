@@ -7,6 +7,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/rmt.h"
+#include "driver/rmt_types_legacy.h"
 #include "driver/rmt_tx.h"
 #include "ws2812.h"
 // Predefined colors (Red, Green, Blue, Yellow, Cyan, Magenta, White, Off)
@@ -37,7 +38,7 @@ void ws2812_set_color(uint8_t red, uint8_t green, uint8_t blue) {
             items[23 - i].duration1 = WS2812_T0L_CYCLES;
         }
     }
-
+    
     rmt_write_items(RMT_TX_CHANNEL, items, 24, true);
     rmt_wait_tx_done(RMT_TX_CHANNEL, portMAX_DELAY);
 }
