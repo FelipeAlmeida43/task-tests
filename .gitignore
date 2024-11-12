@@ -1,0 +1,8 @@
+# Ignore compiled code and build directories
+*.o
+*.pyc
+/build/
+/.vscode/
+/.devcontainer/
+# Ignore log files
+*.log
