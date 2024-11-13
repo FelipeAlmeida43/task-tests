@@ -8,6 +8,8 @@
 #define BUTTON_PIN 9
 #define RGB_PIN 48
 #define DEBOUNCE_TIME_MS 50  // Debounce time of 50ms
+#define LONG_PRESS_DURATION pdMS_TO_TICKS(3000)  // 3 seconds in ticks
+
 int currentColorIndex = 0;  // Start with the first color
 extern uint8_t colors[8][3];
 // Declare a binary semaphore handle
@@ -15,7 +17,54 @@ SemaphoreHandle_t buttonSemaphore;
 
 // Task that waits for button press signal (triggered by semaphore)
 // Task that waits for a valid button press and release
+void buttonTask(void *pvParameter) {
+    int buttonState;
+    int lastButtonState = 1;  // Assuming button is connected with a pull-up resistor
+    TickType_t pressStartTime = 0;  // Time when button press starts
+    TickType_t pressDuration;
+    int longPressDetected = 0;
+
+    while (1) {
+        
+        buttonState = gpio_get_level(BUTTON_PIN);
+
+        // If button is pressed (active low)
+        if (buttonState == 0 && lastButtonState == 1) {
+            // Button press detected, record the time
+            pressStartTime = xTaskGetTickCount();
+            longPressDetected = 0;  // Reset long press flag
+            vTaskDelay(pdMS_TO_TICKS(DEBOUNCE_TIME_MS));  // Debounce
+        } 
+        // If button is released after being pressed
+        else if (buttonState == 1 && lastButtonState == 0) {
+               
+                pressDuration = xTaskGetTickCount() - pressStartTime;
+            
+            // Check if button was pressed for 3 seconds (long press)
+            if (pressDuration >= LONG_PRESS_DURATION) {
+                printf("Button was pressed for 3 seconds (long press)\n");
+                longPressDetected = 1;
+                ws2812_set_color(0, 0, 0);
+            }
+            
+            if (!longPressDetected) {
+                // Handle short press (less than 3 seconds)
+                currentColorIndex = (currentColorIndex + 1) % (sizeof(colors) / sizeof(colors[0]));
+                ws2812_set_color(colors[currentColorIndex][0], colors[currentColorIndex][1], colors[currentColorIndex][2]);
+                printf("Short press detected, color changed\n");
+            }
+
+            vTaskDelay(pdMS_TO_TICKS(DEBOUNCE_TIME_MS));  // Debounce
+        }
+
+        lastButtonState = buttonState;
+        vTaskDelay(pdMS_TO_TICKS(10));  // Small delay to avoid busy-waiting
+        
+    }
+}
+/*
 void buttonTask(void *pvParameters) {
+    
     while (1) {
         // Wait for the semaphore to be given by the ISR
         if (xSemaphoreTake(buttonSemaphore, portMAX_DELAY)) {
@@ -45,7 +94,7 @@ void buttonTask(void *pvParameters) {
         }
     }
 }
-
+*/
 // Interrupt Service Routine (ISR) for the button press
 void IRAM_ATTR buttonISR(void *arg) {
     // "Give" the semaphore to unblock the task

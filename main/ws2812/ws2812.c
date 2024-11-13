@@ -12,13 +12,13 @@
 #include "ws2812.h"
 // Predefined colors (Red, Green, Blue, Yellow, Cyan, Magenta, White, Off)
 uint8_t colors[][3] = {
-    {128, 0, 0},    // Red
-    {0, 128, 0},    // Green
-    {0, 0, 128},    // Blue
-    {128, 128, 0},  // Yellow
-    {0, 128, 128},  // Cyan
-    {128, 0, 128},  // Magenta
-    {128, 128, 128},// White
+    {32, 0, 0},    // Red
+    {0, 32, 0},    // Green
+    {0, 0, 32},    // Blue
+    {32, 32, 0},  // Yellow
+    {0, 32, 32},  // Cyan
+    {32, 0, 32},  // Magenta
+    {32, 32, 32},// White
     {0, 0, 0}       // Off
 };
 void ws2812_set_color(uint8_t red, uint8_t green, uint8_t blue) {
